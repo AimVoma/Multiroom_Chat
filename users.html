@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script src="http://code.jquery.com/jquery-latest.min.js"> </script>
+<script src="/socket.io/socket.io.js"> </script>
+<script src="http://www.json.org/json2.js"> </script>
+
+<style>
+#User_Form{
+	visibility:visible;
+	margin: auto;
+	width: 30%;
+	border: 3px solid blue;
+	padding: 10px;
+}	
+#status_update{
+	margin: auto;
+	width: 30%;
+	border: 1px solid blue;
+	padding: 10px;
+	margin-top: 100px;
+	visibility: hidden;
+}	
+
+</style>	
+
+</head>
+
+<body>
+<div id = "User_Form">
+<form id = "UsrMsg">
+<p><b><span style="color:blue"> User Name:</span></b></p>
+<input type="text" name="User Name" id = "text1">
+
+<input type="button" onclick="SubmitFunction()" value="Submit UserName">
+</form>
+
+
+
+
+</div>
+<div id = "status_update">
+Thank you <p id="p1"> </p>
+</br>
+<strong><span style="color:red"> Your Personal ID:  </span> </strong>
+<p id= "info"></p>
+</br>
+</br>
+Select Room Name : <input type = "text" id = "room_name">
+</br>
+</br>
+
+<input type="button" onclick="SubmitFunction1()" value="Proceed To /rooms">	
+</div>	
+
+
+
+<script>
+var hash;
+function SubmitFunction()
+{
+	var json_string = JSON.stringify({name:'"'+document.getElementById("text1").value+'"'});
+
+	var http = new XMLHttpRequest();
+
+	http.open("POST", "/users");
+
+	http.setRequestHeader("Content-Type","application/json");
+
+	http.onreadystatechange = function() 
+	{
+	if(http.readyState == 4 && http.status == 201) {
+		hash = JSON.parse(http.responseText);  
+		document.getElementById("p1").innerHTML=document.getElementById("text1").value;
+		document.getElementById("p1").style.color="red";
+		document.getElementById("p1").style.textDecoration = "overline";
+		document.getElementById("info").innerHTML = hash.ID;
+		document.getElementById("status_update").style.visibility='visible';
+		document.getElementById("User_Form").style.visibility= 'hidden';
+
+	}
+	else if(http.readyState == 4 && http.status == 409)
+	{
+		alert("Conflict : Name is taken , Resubmit");
+		document.getElementById("text1").value = '';
+	}
+
+	}
+	http.send(json_string);
+}
+
+
+function SubmitFunction1()
+{
+
+	var json_string = JSON.stringify({name:document.getElementById("text1").value,id:hash.ID,room:document.getElementById("room_name").value});
+
+	var http = new XMLHttpRequest();
+
+	http.open("POST", "/rooms");
+
+	http.setRequestHeader("Content-Type","application/json");
+
+	http.onreadystatechange = function() 
+	{
+		if(http.readyState == 4 && (http.status == 201 || http.status == 200))
+		{
+			var arr = JSON.parse(http.responseText);
+			 location.replace(arr.url);
+		}
+	}
+	http.send(json_string);
+}	
+
+</script>
+
+
+
+
+
+</body>
+</html>
